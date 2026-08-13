@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Lumia Timer</title>
+<style>
+html,body{margin:0;background:#000;color:#fff;font-family:"Segoe UI",Arial,sans-serif;text-align:center}
+body{padding:12px}.title{font-size:30px;font-weight:300;margin:8px 0 18px}
+.tabs{display:flex;border-bottom:2px solid #333}.tab{width:50%;padding:13px;color:#aaa}.active{color:#1ba1e2;border-bottom:3px solid #1ba1e2}
+.panel{display:none}.show{display:block}.time{font-size:58px;font-weight:300;margin:45px 0 30px}
+button{border:0;background:#1ba1e2;color:#fff;padding:13px 18px;margin:5px;font-size:18px;min-width:105px}
+.gray{background:#333}input{width:85px;background:#171717;border:1px solid #555;color:#fff;font-size:30px;text-align:center;padding:8px}.inputs{margin:35px 0 5px}
+#laps{margin-top:25px;text-align:left;border-top:1px solid #333}.lap{padding:9px;border-bottom:1px solid #333}.lap b{float:right}
+.colors{margin-top:30px;border-top:1px solid #333;padding-top:15px}.c{width:32px;height:32px;min-width:32px;padding:0;border:2px solid #555}
+</style></head><body>
+<div class="title">Lumia Timer</div>
+<div class="tabs"><div id="a" class="tab active" onclick="tab(0)">Секундомер</div><div id="b" class="tab" onclick="tab(1)">Таймер</div></div>
+<div id="sw" class="panel show"><div class="time" id="sv">00:00.00</div><button onclick="swt()">Старт</button><button class="gray" onclick="lap()">Круг</button><button class="gray" onclick="swr()">Сброс</button><div id="laps"></div></div>
+<div id="tm" class="panel"><div class="inputs"><input id="mm" value="1" type="number"><span> : </span><input id="ss" value="00" type="number"></div>
+<div class="time" id="tv">01:00</div><button onclick="tmt()">Старт</button><button class="gray" onclick="tmr()">Сброс</button></div>
+<div class="colors">Цвет системы<br><button class="c" style="background:#1ba1e2" onclick="col('#1ba1e2')"></button><button class="c" style="background:#aa00ff" onclick="col('#aa00ff')"></button><button class="c" style="background:#e51400" onclick="col('#e51400')"></button><button class="c" style="background:#60a917" onclick="col('#60a917')"></button><button class="c" style="background:#00aba9" onclick="col('#00aba9')"></button><button class="c" style="background:#e3008c" onclick="col('#e3008c')"></button></div>
+<script>
+var sr=0,se=0,si=0,tr=0,te=0,tl=60,ti=0,lc=0;
+function $(i){return document.getElementById(i)}function pad(n){return n<10?'0'+n:n}
+function tab(n){$('sw').className=n?'panel':'panel show';$('tm').className=n?'panel show':'panel';$('a').className=n?'tab':'tab active';$('b').className=n?'tab active':'tab'}
+function sd(){var z=se+(sr?new Date().getTime()-sr:0),cs=Math.floor(z/10)%100,s=Math.floor(z/1000)%60,m=Math.floor(z/60000);$('sv').innerHTML=pad(m)+':'+pad(s)+'.'+pad(cs)}
+function swt(){if(sr){se+=new Date().getTime()-sr;sr=0;clearInterval(si)}else{sr=new Date().getTime();si=setInterval(sd,40)}sd();save()}
+function swr(){sr=0;se=0;lc=0;clearInterval(si);$('sv').innerHTML='00:00.00';$('laps').innerHTML='';save()}
+function lap(){if(!sr)return;lc++;var d=document.createElement('div');d.className='lap';d.innerHTML='Круг '+lc+' <b>'+$('sv').innerHTML+'</b>';$('laps').insertBefore(d,$('laps').firstChild)}
+function val(){var m=parseInt($('mm').value,10)||0,s=parseInt($('ss').value,10)||0;if(s>59)s=59;if(m>99)m=99;return m*60+s}
+function td(){if(tr)tl=Math.max(0,Math.ceil((te-new Date().getTime())/1000));$('tv').innerHTML=pad(Math.floor(tl/60))+':'+pad(tl%60)}
+function tmt(){if(tr){tl=Math.max(0,Math.ceil((te-new Date().getTime())/1000));tr=0;clearInterval(ti);save();return}if(tl<=0)tl=val();if(!tl)return;te=new Date().getTime()+tl*1000;tr=1;ti=setInterval(function(){td();if(tl<=0){tr=0;clearInterval(ti);alert('Таймер завершён')}save()},250);save()}
+function tmr(){tr=0;clearInterval(ti);tl=val();td();save()}
+function col(c){document.body.style.color=c;var q=document.getElementsByClassName('active');for(var i=0;i<q.length;i++)q[i].style.color=c;try{localStorage.setItem('lc',c)}catch(e){}}
+function save(){try{localStorage.setItem('timer640',JSON.stringify({sr:sr,se:se,tr:tr,te:te,tl:tl}))}catch(e){}}
+function load(){try{var x=JSON.parse(localStorage.getItem('timer640'));if(x){sr=x.sr;se=x.se;tr=x.tr;te=x.te;tl=x.tl;if(tr){tl=Math.max(0,Math.ceil((te-new Date().getTime())/1000));if(tl<=0)tr=0}}}catch(e){}}
+load();try{var c=localStorage.getItem('lc');if(c)col(c)}catch(e){}sd();td();if(sr)si=setInterval(sd,40);if(tr)ti=setInterval(function(){td();if(tl<=0){tr=0;clearInterval(ti);alert('Таймер завершён')}},250);
+</script></body></html>
